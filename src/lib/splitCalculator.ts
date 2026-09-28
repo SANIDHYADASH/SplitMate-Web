@@ -157,3 +157,19 @@ export function calculateRemainingSettlements(
 
   return settlements;
 }
+
+/**
+ * Scales `parts` so they add up to `total` while keeping their ratios
+ * (e.g. spreading a discount across split groups). Leftover paise from
+ * rounding go to the largest part so the result sums to `total` exactly.
+ */
+export function scaleToTotal(parts: number[], total: number): number[] {
+  const partsCents = parts.map((p) => Math.round(p * 100));
+  const sumCents = partsCents.reduce((a, b) => a + b, 0);
+  if (sumCents === 0) return parts.map(() => 0);
+  const totalCents = Math.round(total * 100);
+  const scaled = partsCents.map((p) => Math.round((p * totalCents) / sumCents));
+  const largest = scaled.indexOf(Math.max(...scaled));
+  scaled[largest] += totalCents - scaled.reduce((a, b) => a + b, 0);
+  return scaled.map((c) => c / 100);
+}
